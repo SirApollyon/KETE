@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Dream Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            font-family: 'Montserrat', sans-serif; /* Set Montserrat as the default font */
+        }
+       
+        .gm-style-iw-chr{
+            display:none !important;
+            pointer-events: none;
+        }
+
+        
+        .map-container {
+            position: relative;
+            width: 600px;
+            height: 450px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .filter-container {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 10;
+        }
+
+        .info-window-content {
+            display: flex;
+            flex-direction: row;
+            width: 300px;
+            height: 150px;
+            padding: 10px;
+            border: px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .left-column {
+            flex: 1; /* Take up available space */
+            padding: 10px; /* Padding inside the left column */
+        }
+
+        .left-column h3 {
+             /* Increased font size for title */
+            margin: 0 0 20px; /* Remove default margin, add bottom margin for spacing */
+        }
+
+        .left-column p {
+            /* Increased font size for price */
+            margin: 0; /* Remove default margin */
+        }
+
+        .right-column {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .right-column img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+    <script>
+        (g => {
+            var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window;
+            b = b[c] || (b[c] = {});
+            var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams(), u = () => h || (h = new Promise(async (f, n) => {
+                await (a = m.createElement("script"));
+                e.set("libraries", [...r] + "");
+                for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
+                e.set("callback", c + ".maps." + q);
+                a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+                d[q] = f;
+                a.onerror = () => h = n(Error(p + " could not load."));
+                a.nonce = m.querySelector("script[nonce]")?.nonce || "";
+                m.head.append(a);
+            }));
+            d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n));
+        })({
+            key: "AIzaSyCSp8dD15-ZvK5KbDbNk0F6CF4TEr0hIaY",
+            v: "weekly",
+        });
+
+        let map;
+        let heatmap;
+        let markers = [];
+
+        async function initMap() {
+            const position = { lat: 47.3666700, lng: 8.5500000 };
+
+            const { Map } = await google.maps.importLibrary("maps");
+            const { HeatmapLayer } = await google.maps.importLibrary("visualization");
+
+            map = new Map(document.getElementById("map"), {
+                zoom: 11.7,
+                center: position,
+                mapId: "DEMO_MAP_ID",
+            });
+
+            heatmap = new HeatmapLayer({
+                data: [],
+                map: map,
+            });
+
+            // Add event listeners for the filters
+            document.getElementById("natureFilter").addEventListener("input", updateHeatmap);
+            document.getElementById("educationFilter").addEventListener("input", updateHeatmap);
+            document.getElementById("transportFilter").addEventListener("input", updateHeatmap);
+
+            // Add zoom change listener
+            map.addListener('zoom_changed', () => {
+                const zoomLevel = map.getZoom();
+                if (zoomLevel > 14) { // Adjust this threshold as needed
+                    displayMarkers();
+                } else {
+                    clearMarkers(); // Clear markers if zoom level is not sufficient
+                }
+            });
+
+        }
+
+        async function updateHeatmap() {
+            const natureValue = document.getElementById("natureFilter").value;
+            const educationValue = document.getElementById("educationFilter").value;
+            const transportValue = document.getElementById("transportFilter").value;
+
+            // Fetch filtered housing ads from the backend
+            const response = await fetch(`/filter_housing_ads?nature_distance=${natureValue}&education_distance=${educationValue}&transport_distance=${transportValue}`);
+            const housingAds = await response.json();
+
+            // Prepare heatmap data from housing ads
+            const heatmapData = housingAds.map(ad => new google.maps.LatLng(ad.latitude, ad.longitude));
+            heatmap.setData(heatmapData);
+
+            // Clear existing markers when filters change
+            clearMarkers();
+        }
+
+        async function displayMarkers() {
+            const natureValue = document.getElementById("natureFilter").value;
+            const educationValue = document.getElementById("educationFilter").value;
+            const transportValue = document.getElementById("transportFilter").value;
+
+            // Fetch filtered housing ads from the backend
+            const response = await fetch(`/filter_housing_ads?nature_distance=${natureValue}&education_distance=${educationValue}&transport_distance=${transportValue}`);
+            const housingAds = await response.json();
+
+            // Clear existing markers
+            clearMarkers();
+
+            // Create markers for each housing ad
+            housingAds.forEach(ad => {
+                const position = new google.maps.LatLng(ad.latitude, ad.longitude);
+                const marker = new google.maps.Marker({
+                    position,
+                    map,
+                });
+
+                // Create an InfoWindow for the marker
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div class="info-window-content">
+                            <div class="left-column">
+                                <h3>${ad.title}</h3>
+                                <p>Price: $${ad.price}</p>
+                            </div>
+                            <div class="right-column">
+                                <img src="${ad.images}" alt="${ad.title}">
+                            </div>
+                         </div>
+                    `,
+                });
+
+                let timeout;
+
+                // Add a mouseover listener to the marker to show the InfoWindow
+                marker.addListener("mouseover", () => {
+                    timeout = setTimeout(() => {
+                        infoWindow.open(map, marker);
+                    }, 500); // 500ms delay
+                });
+
+                // Add a mouseout listener to the marker to close the InfoWindow
+                marker.addListener("mouseout", () => {
+                    clearTimeout(timeout);
+                    infoWindow.close();
+                });
+
+                // Store the marker
+                markers.push(marker);
+
+            });
+
+        }
+
+        function clearMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+
+        window.onload = initMap;
+    </script>
+</head>
+
+<body>
+    <div class="map-container">
+        <div id="map"></div>
+
+        <!-- Filter Section -->
+        <div class="filter-container">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-filter text-2xl"></i>
+                <span class="ml-2 text-xl font-semibold">Filters</span>
+            </div>
+            <div class="mb-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm">Nature</span>
+                </div>
+                <input type="range" id="natureFilter" min="0" max="100" value="0" class="w-full" />
+            </div>
+            <div class="mb-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm">Education</span>
+                </div>
+                <input type="range" id="educationFilter" min="0" max="100" value="0" class="w-full" />
+            </div>
+            <div class="mb-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm">Transport</span>
+                </div>
+                <input type="range" id="transportFilter" min="0" max="100" value="0" class="w-full" />
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

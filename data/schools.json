@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "title": "ssd.schulanlagen_archiv",
+    "latitude": 47.3861640267,
+    "longitude": 8.5300321147
+  },
+  {
+    "id": 2,
+    "title": "ssd.schulanlagen_archiv",
+    "latitude": 47.3862025945,
+    "longitude": 8.4929346565
+  },
+  {
+    "id": 3,
+    "title": "stzh.poi_kindergarten_view",
+    "latitude": 47.3868583506,
+    "longitude": 8.5018673819
+  },
+  {
+    "id": 4,
+    "title": "stzh.poi_kindergarten_view",
+    "latitude": 47.3942550689,
+    "longitude": 8.5206227819
+  },
+  {
+    "id": 5,
+    "title": "stzh.poi_kinderhort_view",
+    "latitude": 47.3897833322,
+    "longitude": 8.481763545
+  },
+  {
+    "id": 6,
+    "title": "stzh.poi_kinderhort_view",
+    "latitude": 47.3897833322,
+    "longitude": 8.481763545
+  },
+  {
+    "id": 7,
+    "title": "stzh.poi_sonderschule_view",
+    "latitude": 47.3705417119,
+    "longitude": 8.5094211072
+  },
+  {
+    "id": 8,
+    "title": "stzh.poi_sonderschule_view",
+    "latitude": 47.3848781884,
+    "longitude": 8.4860547893
+  },
+  {
+    "id": 9,
+    "title": "stzh.poi_volksschule_view",
+    "latitude": 47.4049718587,
+    "longitude": 8.5687873872
+  },
+  {
+    "id": 10,
+    "title": "stzh.poi_volksschule_view",
+    "latitude": 47.4125736171,
+    "longitude": 8.4793793526
+  }
+]
